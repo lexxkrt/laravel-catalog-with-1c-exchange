@@ -18,18 +18,4 @@ class Brand extends Model
     {
         return $this->hasMany(Product::class);
     }
-
-    public function scopeRemainOnly($query)
-    {
-        $query->whereHas('products', function ($query) {
-            $query->where('quantity', '>', 0);
-        });
-    }
-
-    public function scopeSearch($query, $search)
-    {
-        $query->when(!empty($search), function ($query) use ($search) {
-            $query->where('name', 'like', "%{$search}%");
-        });
-    }
 }

@@ -41,18 +41,4 @@ class Category extends Model
         return $this->belongsToMany(FilterGroup::class, 'category_filter')->withPivot(['position', 'status']);
     }
 
-    public static function listParents(Category $category, $reverse = false)
-    {
-        $parents = [];
-        $parent = $category->parent;
-        while ($parent) {
-            $parents[] = $parent;
-            $parent = $parent->parent;
-        }
-        if ($reverse) {
-            $parents = array_reverse($parents);
-        }
-        return $parents;
-    }
-
 }
