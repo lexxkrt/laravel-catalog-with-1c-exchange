@@ -2,12 +2,12 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\File;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 trait HasImage
 {
@@ -49,7 +49,7 @@ trait HasImage
             return $this->image;
         }
 
-        $file_path = Storage::disk("local")->path('images/' . $this->image);
+        $file_path = Storage::disk("local")->path("images/{$this->image}");
 
         if (!File::exists($file_path)) {
             return asset('images/no_img.jpg');
@@ -59,14 +59,14 @@ trait HasImage
             return abort(403);
         }
 
-        $cache_path = Storage::disk('public')->path("images/cache/{$size}/");
+        $cache_path = Storage::disk('public')->path("images/cache/{$size}/{$this->image}");
 
         if (
-            !File::exists($cache_path . $this->image)
-            || File::lastModified($cache_path . $this->image) < File::lastModified($file_path)
+            !File::exists($cache_path)
+            || File::lastModified($cache_path) < File::lastModified($file_path)
         ) {
-            if (!File::exists(dirname($cache_path . $this->image))) {
-                File::makeDirectory(dirname($cache_path . $this->image), 0755, true);
+            if (!File::exists(dirname($cache_path))) {
+                File::makeDirectory(dirname($cache_path), 0755, true);
             }
 
             $image = @Image::read($file_path);
@@ -78,19 +78,17 @@ trait HasImage
                 default => [$image->width(), $image->height()]
             };
 
-            $image->scale($width, $height)->resizeCanvas($width, $height)->save($cache_path . $this->image, quality: $quality);
+            $image->scale($width, $height)->resizeCanvas($width, $height)->save($cache_path, quality: $quality);
         }
 
-        return Storage::disk('public')->url("images/cache/{$size}/" . $this->image);
+        return Storage::disk('public')->url("images/cache/{$size}/{$this->image}");
     }
 
-    public function deleteImage($image = null)
+    public function deleteImage()
     {
-        is_null($image) and $image = $this->image;
-
-        Storage::disk('local')->delete("images/{$image}");
+        Storage::disk('local')->delete("images/{$this->image}");
         foreach (['original', 'small', 'medium', 'large'] as $size) {
-            Storage::disk('public')->delete("images/cache/{$size}/{$image}");
+            Storage::disk('public')->delete("images/cache/{$size}/{$this->image}");
         }
     }
 
