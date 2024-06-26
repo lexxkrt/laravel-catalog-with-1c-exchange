@@ -15,7 +15,9 @@ use Illuminate\Http\Request;
 use App\Models\PropertyValue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
 class Exchange1C extends Controller
@@ -129,7 +131,7 @@ class Exchange1C extends Controller
     {
         if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
             echo "failure\n";
-            echo "user '" . env("1C_USER") . "'\n";
+            // echo "user '" . env("1C_USER") . "'\n";
             echo "error login\n";
             exit;
         }
@@ -140,10 +142,11 @@ class Exchange1C extends Controller
             exit;
         }
 
-        Cookie::queue('key', md5(env('1C_PASSWORD')), 3600);
-        echo "success\n";
-        echo "key\n";
-        echo md5(env("1C_PASSWORD")) . "\n";
+        $cookieName = config('session.cookie');
+        $cookieID = Session::getId();
+
+        echo "success\n$cookieName\n$cookieID";
+        //\n".csrf_token()."\n".date('Y-m-d_H:i:s');
     }
 
     private function catalogInit()
@@ -155,21 +158,31 @@ class Exchange1C extends Controller
 
     private function checkAccess()
     {
-        Log::info('request',request()->all());
-        
-        return;
+        return true;
 
-        if (!request()->hasCookie("key")) {
-            echo "failure\n";
-            echo "no cookie\n";
-            exit;
-        }
-        if (request()->cookie("key") != md5(env("1C_PASSWORD"))) {
-            echo "failure\n";
-            echo "session error\n";
-            exit;
-        }
+        // foreach (request()->all() as $key => $item) {
+        //     if ($key === Session::token()) {
+        //         return true;
+        //     }
+        // }
+        // return false;
+        
+        // Log::info('request', request()->cookie());
+
+        // return;
+
+        // if (!request()->hasCookie("key")) {
+        //     echo "failure\n";
+        //     echo "no cookie\n";
+        //     exit;
+        // }
+        // if (request()->cookie("key") != Hash::make(env("1C_PASSWORD"))) {
+        //     echo "failure\n";
+        //     echo "session error\n";
+        //     exit;
+        // }
     }
+
     private function catalogFile()
     {
         $this->checkAccess();
