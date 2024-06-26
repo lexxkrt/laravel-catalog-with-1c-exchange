@@ -87,50 +87,36 @@ class Exchange1C extends Controller
 
     private function saleFile()
     {
-        // $this->checkAccess();
-
-        $cache_dir = Storage::disk('local')->path('cache/exchange');
-
-        if (!File::exists($cache_dir)) {
-            File::makeDirectory($cache_dir, 0755, true);
-        }
+        $this->checkAccess();
 
         $filename = request()->input('filename');
-        if (isset($filename)) {
-            $upload_file = "{$cache_dir}/{$filename}";
-        } else {
+        if (!isset($filename) || strpos($filename, 'orders') === false) {
             echo "failure\n";
             echo "No filename variable\n";
             exit;
         }
 
-        if (strpos($filename, 'orders') === false) {
-            echo "failure\n";
-            echo "ERROR 10: No file name variable";
-            return;
-        }
+        $upload_file = Storage::disk('local')->path("cache/exchange/{$filename}");
+
+        File::exists(dirname($upload_file)) or File::makeDirectory(dirname($upload_file), 0755, true);
 
         $data = file_get_contents("php://input");
 
         // $data = request()->getContent();
 
         if ($data !== false) {
-            if ($fp = fopen($upload_file, "wb")) {
-                $result = fwrite($fp, $data);
-                if ($result === strlen($data)) {
-                    echo "success\n";
-                    chmod($upload_file, 0755);
-
-                    // update order
-                }
+            if (File::put($upload_file, $data)) {
+                echo "success\n";
+                chmod($upload_file, 0755);
+                exit;
             } else {
                 echo "failure\n";
                 echo "Can't open file: $upload_file\n";
+                exit;
             }
-        } else {
-            echo "failure\n";
-            echo "No data file\n";
         }
+        echo "failure\n";
+        echo "No data file\n";
     }
 
     private function saleQuery()
@@ -181,7 +167,7 @@ class Exchange1C extends Controller
     }
     private function catalogFile()
     {
-        // $this->checkAccess();
+        $this->checkAccess();
 
         $filename = request()->input('filename');
         if (!isset($filename)) {
@@ -204,11 +190,15 @@ class Exchange1C extends Controller
             if (File::put($upload_file, $data)) {
                 echo "success\n";
                 chmod($upload_file, 0755);
+                exit;
             } else {
                 echo "failure\n";
                 echo "Can't open file: $upload_file\n";
+                exit;
             }
         }
+        echo "failure\n";
+        echo "No data file\n";
     }
 
     private function manual()
