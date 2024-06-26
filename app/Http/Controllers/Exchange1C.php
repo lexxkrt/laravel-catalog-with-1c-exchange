@@ -154,6 +154,8 @@ class Exchange1C extends Controller
 
     private function checkAccess()
     {
+        return;
+        
         if (!request()->hasCookie("key")) {
             echo "failure\n";
             echo "no cookie\n";
@@ -208,7 +210,7 @@ class Exchange1C extends Controller
 
     private function catalogImport()
     {
-        // $this->checkAccess();
+        $this->checkAccess();
 
         $filename = request()->input("filename");
 
