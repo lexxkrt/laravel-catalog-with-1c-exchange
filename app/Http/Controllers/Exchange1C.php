@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
-use App\Models\Category;
-use App\Models\Filter;
-use App\Models\FilterGroup;
-use App\Models\Product;
-use App\Models\Property;
-use App\Models\PropertyValue;
 use App\Models\Store;
-use Illuminate\Http\Request;
+use App\Models\Filter;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\Property;
+use App\Models\FilterGroup;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\PropertyValue;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Storage;
 
 class Exchange1C extends Controller
 {
@@ -154,8 +155,10 @@ class Exchange1C extends Controller
 
     private function checkAccess()
     {
-        return;
+        Log::info('request',request()->all());
         
+        return;
+
         if (!request()->hasCookie("key")) {
             echo "failure\n";
             echo "no cookie\n";
