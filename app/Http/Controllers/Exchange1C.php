@@ -131,7 +131,6 @@ class Exchange1C extends Controller
     {
         if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
             echo "failure\n";
-            // echo "user '" . env("1C_USER") . "'\n";
             echo "error login\n";
             exit;
         }
@@ -141,12 +140,8 @@ class Exchange1C extends Controller
             echo "error login\n";
             exit;
         }
-
-        $cookieName = config('session.cookie');
-        $cookieID = Session::getId();
-
-        echo "success\n$cookieName\n$cookieID";
-        //\n".csrf_token()."\n".date('Y-m-d_H:i:s');
+        $hash = Hash::make(env('1C_PASSWORD'));
+        echo "success\nkey\n$hash\n";
     }
 
     private function catalogInit()
@@ -159,17 +154,6 @@ class Exchange1C extends Controller
     private function checkAccess()
     {
         return true;
-
-        // foreach (request()->all() as $key => $item) {
-        //     if ($key === Session::token()) {
-        //         return true;
-        //     }
-        // }
-        // return false;
-        
-        // Log::info('request', request()->cookie());
-
-        // return;
 
         // if (!request()->hasCookie("key")) {
         //     echo "failure\n";
