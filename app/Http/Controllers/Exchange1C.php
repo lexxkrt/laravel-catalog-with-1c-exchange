@@ -3,22 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
-use App\Models\Store;
-use App\Models\Filter;
-use App\Models\Product;
 use App\Models\Category;
-use App\Models\Property;
+use App\Models\Filter;
 use App\Models\FilterGroup;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\Property;
 use App\Models\PropertyValue;
-use Illuminate\Support\Facades\Log;
+use App\Models\Store;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Exchange1C extends Controller
 {
