@@ -28,6 +28,8 @@ class Exchange1C extends Controller
 
     public function __invoke()
     {
+        $this->auth();
+
         $mode = request()->input("mode");
         $type = request()->input("type");
 
@@ -79,6 +81,21 @@ class Exchange1C extends Controller
         }
     }
 
+    private function auth()
+    {
+        if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
+            echo "failure\n";
+            echo "error login\n";
+            exit;
+        }
+
+        if (request()->server("PHP_AUTH_PW") != env("1C_PASSWORD")) {
+            echo "failure\n";
+            echo "error login\n";
+            exit;
+        }
+    }
+
     private function saleInit()
     {
         $limit = 100000 * 1024;
@@ -127,20 +144,9 @@ class Exchange1C extends Controller
 
     private function checkauth()
     {
-        if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
-            echo "failure\n";
-            echo "error login\n";
-            exit;
-        }
-
-        if (request()->server("PHP_AUTH_PW") != env("1C_PASSWORD")) {
-            echo "failure\n";
-            echo "error login\n";
-            exit;
-        }
-
-        $hash = Hash::make(env('1C_PASSWORD'));
-        echo "success\nkey\n$hash\n";
+        echo "success\n";
+        echo "key\n";
+        echo md5(env('1C_PASSWORD')) . "\n";
     }
 
     private function catalogInit()
@@ -271,8 +277,8 @@ class Exchange1C extends Controller
     {
         if ($xml?->Группа) {
             foreach ($xml->Группа as $group) {
-                $uuid = (string) $group->Ид;
-                $name = (string) $group->Наименование;
+                $uuid     = (string) $group->Ид;
+                $name     = (string) $group->Наименование;
                 $category = Category::updateOrCreate(
                     ['uuid' => $uuid],
                     ['name' => $name, 'parent_id' => $parent_id]
@@ -294,16 +300,16 @@ class Exchange1C extends Controller
                 $uuid = (string) $prop->Ид;
                 $name = (string) $prop->Наименование;
 
-                $property = Property::updateOrCreate(['uuid' => $uuid], ['name' => $name]);
+                $property      = Property::updateOrCreate(['uuid' => $uuid], ['name' => $name]);
                 $filter_groups = FilterGroup::updateOrCreate(['uuid' => $uuid], ['name' => $name]);
 
-                $this->properties[$uuid] = $property;
+                $this->properties[$uuid]    = $property;
                 $this->filter_groups[$uuid] = $filter_groups;
 
                 if ((string) $prop->ВариантыЗначений && (string) $prop->ТипЗначений == "Справочник") {
                     foreach ($prop->ВариантыЗначений->Справочник as $variant) {
                         if ((string) $variant->Значение != '') {
-                            $variant_uuid = (string) $variant->ИдЗначения;
+                            $variant_uuid  = (string) $variant->ИдЗначения;
                             $variant_value = (string) $variant->Значение;
 
                             $value = PropertyValue::updateOrCreate(['uuid' => $variant_uuid], ['value' => $variant_value]);
@@ -341,13 +347,13 @@ class Exchange1C extends Controller
                     continue;
                 }
 
-                $model = (string) $product->Артикул;
-                $sku = (string) $product->Код;
-                $name = (string) $product->Наименование;
+                $model       = (string) $product->Артикул;
+                $sku         = (string) $product->Код;
+                $name        = (string) $product->Наименование;
                 $description = (string) $product->Описание;
-                $brand = null;
-                $category = null;
-                $images = [];
+                $brand       = null;
+                $category    = null;
+                $images      = [];
                 if ($product->Картинка) {
                     foreach ($product->Картинка as $img) {
                         $images[] = (string) $img;
@@ -356,8 +362,8 @@ class Exchange1C extends Controller
 
                 // dump($uuid, $model, $sku, $name, $description, $images);
 
-                $properties = [];
-                $filters = [];
+                $properties    = [];
+                $filters       = [];
                 $filter_groups = [];
 
                 if ($product->Группы->Ид) {
@@ -392,33 +398,33 @@ class Exchange1C extends Controller
                         $value == "true" and $value = "Есть";
 
                         $properties[$this->properties[(string) $prop->Ид]->id] = [
-                            'value' => $value,
+                            'value'    => $value,
                             'position' => $n++,
                         ];
 
-                        $filter_group = FilterGroup::updateOrCreate(['uuid' => (string) $prop->Ид], ['name' => $this->properties[(string) $prop->Ид]->name]);
+                        $filter_group                     = FilterGroup::updateOrCreate(['uuid' => (string) $prop->Ид], ['name' => $this->properties[(string) $prop->Ид]->name]);
                         $filter_groups[$filter_group->id] = $filter_group->id;
-                        $filter = Filter::firstOrCreate(['filter_group_id' => $filter_group->id, 'value' => $value]);
-                        $filters[] = $filter->id;
+                        $filter                           = Filter::firstOrCreate(['filter_group_id' => $filter_group->id, 'value' => $value]);
+                        $filters[]                        = $filter->id;
                     }
                 }
 
                 $product = Product::where('uuid', $uuid)->orWhere('sku', $sku)->orWhere('name', $name)->updateOrCreate([], [
-                    'uuid' => $uuid,
-                    'model' => $model,
-                    'sku' => $sku,
-                    'name' => $name,
-                    'image' => array_shift($images),
+                    'uuid'        => $uuid,
+                    'model'       => $model,
+                    'sku'         => $sku,
+                    'name'        => $name,
+                    'image'       => array_shift($images),
                     'description' => $description,
                     'category_id' => $category?->id,
-                    'brand_id' => $brand?->id,
+                    'brand_id'    => $brand?->id,
                 ]);
 
                 if ($images) {
                     $product->images()->delete();
                     foreach ($images as $key => $img) {
                         $product->images()->create([
-                            'image' => $img,
+                            'image'    => $img,
                             'position' => $key,
                         ]);
                     }
@@ -448,14 +454,14 @@ class Exchange1C extends Controller
             exit;
         }
 
-        $xml = simplexml_load_file($filename);
+        $xml    = simplexml_load_file($filename);
         $stores = [];
         if ($xml->ПакетПредложений->Склады->Склад) {
             foreach ($xml->ПакетПредложений->Склады->Склад as $store) {
-                $uuid = (string) $store->Ид;
-                $name = (string) $store->Наименование;
+                $uuid    = (string) $store->Ид;
+                $name    = (string) $store->Наименование;
                 $address = (string) $store->Адрес->Представление;
-                $phone = null;
+                $phone   = null;
                 if ($store->Контакты) {
                     foreach ($store->Контакты->Контакт as $contact) {
                         if ((string) $contact->Тип === "Телефон рабочий") {
@@ -464,12 +470,12 @@ class Exchange1C extends Controller
                         }
                     }
                 }
-                $store = Store::firstOrCreate([
+                $store         = Store::firstOrCreate([
                     'uuid' => $uuid,
                 ], [
-                    'name' => $name,
+                    'name'    => $name,
                     'address' => $address,
-                    'phone' => $phone,
+                    'phone'   => $phone,
                 ]);
                 $stores[$uuid] = $store;
             }
@@ -478,7 +484,7 @@ class Exchange1C extends Controller
             $product = Product::query()->where('uuid', explode('#', (string) $offer->Ид)[0])->first();
             if ($product) {
                 $product->update([
-                    'price' => (int) $offer->Цены->Цена[0]->ЦенаЗаЕдиницу,
+                    'price'    => (int) $offer->Цены->Цена[0]->ЦенаЗаЕдиницу,
                     'quantity' => (int) $offer->Количество,
                 ]);
                 $qty = [];
