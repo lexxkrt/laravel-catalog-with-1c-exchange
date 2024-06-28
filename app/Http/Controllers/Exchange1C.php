@@ -147,6 +147,8 @@ class Exchange1C extends Controller
         echo "success\n";
         echo "key\n";
         echo md5(env('1C_PASSWORD')) . "\n";
+        echo "sessid=" . csrf_token() . "\n";
+        echo "datetime=" . date("Y-m-d_H:i:s") . "\n";
     }
 
     private function catalogInit()
@@ -159,17 +161,6 @@ class Exchange1C extends Controller
     private function checkAccess()
     {
         return true;
-
-        // if (!request()->hasCookie("key")) {
-        //     echo "failure\n";
-        //     echo "no cookie\n";
-        //     exit;
-        // }
-        // if (request()->cookie("key") != Hash::make(env("1C_PASSWORD"))) {
-        //     echo "failure\n";
-        //     echo "session error\n";
-        //     exit;
-        // }
     }
 
     private function catalogFile()
