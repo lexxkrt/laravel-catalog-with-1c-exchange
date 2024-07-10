@@ -47,9 +47,6 @@ class Exchange1C extends Controller
                 case 'import':
                     $this->catalogImport();
                     break;
-                case 'manual':
-                    $this->manual();
-                    break;
                 default:
                     echo "failure\n";
                     echo "error command\n";
@@ -197,11 +194,6 @@ class Exchange1C extends Controller
         }
         echo "failure\n";
         echo "No data file\n";
-    }
-
-    private function manual()
-    {
-        $this->catalogImport();
     }
 
     private function catalogImport()
