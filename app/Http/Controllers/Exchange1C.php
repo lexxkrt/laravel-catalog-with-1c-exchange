@@ -255,9 +255,9 @@ class Exchange1C extends Controller
 
         $xml = simplexml_load_file($filename);
 
-        $this->parseCategories($xml->Классификатор->Группы);
-        $this->parseProperties($xml->Классификатор->Свойства);
-        $this->parseProducts($xml->Каталог->Товары);
+        is_null($xml->Классификатор->Группы) or $this->parseCategories($xml->Классификатор->Группы);
+        is_null($xml->Классификатор->Свойства) or $this->parseProperties($xml->Классификатор->Свойства);
+        is_null($xml->Каталог->Товары) or $this->parseProducts($xml->Каталог->Товары);
 
         if (app()->environment(['production'])) {
             File::delete($filename);
