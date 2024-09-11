@@ -11,11 +11,8 @@ use App\Models\Property;
 use App\Models\FilterGroup;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Models\PropertyValue;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
 class Exchange1C extends Controller
@@ -28,8 +25,6 @@ class Exchange1C extends Controller
 
     public function __invoke()
     {
-        $this->auth();
-
         $mode = request()->input("mode");
         $type = request()->input("type");
 
@@ -141,6 +136,8 @@ class Exchange1C extends Controller
 
     private function checkauth()
     {
+        $this->auth();
+
         echo "success\n";
         echo "key\n";
         echo md5(env('1C_PASSWORD')) . "\n";
@@ -157,7 +154,16 @@ class Exchange1C extends Controller
 
     private function checkAccess()
     {
-        return true;
+        if (request()->hasHeader('cookie')) {
+            $cookies = explode(';', request()->header('cookie'));
+            foreach ($cookies as $cookie) {
+                [$key, $value] = explode('=', trim($cookie));
+                if ($key == "key" && $value == md5(env('1C_PASSWORD'))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private function catalogFile()
