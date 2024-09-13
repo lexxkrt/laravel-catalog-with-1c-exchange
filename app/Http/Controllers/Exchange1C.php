@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Order;
 use App\Models\Store;
 use App\Models\Filter;
 use App\Models\Product;
@@ -60,7 +61,7 @@ class Exchange1C extends Controller
                     $this->saleFile();
                     break;
                 case "query":
-                    $this->saleQuery();
+                    return $this->saleQuery();
                     echo "success\n";
                     break;
                 default:
@@ -131,7 +132,11 @@ class Exchange1C extends Controller
 
     private function saleQuery()
     {
-        // get orders to xml format
+        $orders = Order::query()
+            ->with(['products'])
+            ->get();
+        return view('order', compact('orders'));
+        // return response()->view('order', compact('orders'))->header('Content-Type', 'text/xml');
     }
 
     private function checkauth()
