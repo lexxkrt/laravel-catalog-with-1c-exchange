@@ -62,8 +62,6 @@ class Exchange1C extends Controller
                     break;
                 case "query":
                     return $this->saleQuery();
-                    echo "success\n";
-                    break;
                 default:
                     echo "failure\n";
                     echo "error command\n";
@@ -257,9 +255,7 @@ class Exchange1C extends Controller
         is_null($xml->Классификатор->Свойства) or $this->parseProperties($xml->Классификатор->Свойства);
         is_null($xml->Каталог->Товары) or $this->parseProducts($xml->Каталог->Товары);
 
-        if (app()->environment(['production'])) {
-            File::delete($filename);
-        }
+        app()->isProduction() and File::delete($filename);
     }
 
     private function parseCategories($xml, $parent_id = null)
@@ -444,6 +440,29 @@ class Exchange1C extends Controller
         }
 
         $xml    = simplexml_load_file($filename);
+
+        $stores = $this->parseStores($xml);
+
+        foreach ($xml->ПакетПредложений->Предложения->Предложение as $offer) {
+            $product = Product::query()->where('uuid', explode('#', (string) $offer->Ид)[0])->first();
+            if ($product) {
+                $product->update([
+                    'price'    => (int) $offer->Цены->Цена[0]->ЦенаЗаЕдиницу,
+                    'quantity' => (int) $offer->Количество,
+                ]);
+                $qty = [];
+                foreach ($offer->Склад as $store) {
+                    $qty[$stores[(string) $store['ИдСклада']]->id] = ['quantity' => (string) $store['КоличествоНаСкладе']];
+                }
+                $product->stores()->sync($qty);
+            }
+        }
+        if (app()->environment(['production'])) {
+            File::delete($filename);
+        }
+    }
+
+    private function parseStores($xml){
         $stores = [];
         if ($xml->ПакетПредложений->Склады->Склад) {
             foreach ($xml->ПакетПредложений->Склады->Склад as $store) {
@@ -469,22 +488,6 @@ class Exchange1C extends Controller
                 $stores[$uuid] = $store;
             }
         }
-        foreach ($xml->ПакетПредложений->Предложения->Предложение as $offer) {
-            $product = Product::query()->where('uuid', explode('#', (string) $offer->Ид)[0])->first();
-            if ($product) {
-                $product->update([
-                    'price'    => (int) $offer->Цены->Цена[0]->ЦенаЗаЕдиницу,
-                    'quantity' => (int) $offer->Количество,
-                ]);
-                $qty = [];
-                foreach ($offer->Склад as $store) {
-                    $qty[$stores[(string) $store['ИдСклада']]->id] = ['quantity' => (string) $store['КоличествоНаСкладе']];
-                }
-                $product->stores()->sync($qty);
-            }
-        }
-        if (app()->environment(['production'])) {
-            File::delete($filename);
-        }
+        return $stores;
     }
 }
