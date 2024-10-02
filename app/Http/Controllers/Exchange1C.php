@@ -74,21 +74,6 @@ class Exchange1C extends Controller
         }
     }
 
-    private function auth()
-    {
-        if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
-            echo "failure\n";
-            echo "error login\n";
-            exit;
-        }
-
-        if (request()->server("PHP_AUTH_PW") != env("1C_PASSWORD")) {
-            echo "failure\n";
-            echo "error login\n";
-            exit;
-        }
-    }
-
     private function saleInit()
     {
         $limit = 100000 * 1024;
@@ -141,7 +126,17 @@ class Exchange1C extends Controller
 
     private function checkauth()
     {
-        $this->auth();
+        if (request()->server("PHP_AUTH_USER") != env("1C_USER")) {
+            echo "failure\n";
+            echo "error login\n";
+            exit;
+        }
+
+        if (request()->server("PHP_AUTH_PW") != env("1C_PASSWORD")) {
+            echo "failure\n";
+            echo "error login\n";
+            exit;
+        }
 
         echo "success\n";
         echo "key\n";
